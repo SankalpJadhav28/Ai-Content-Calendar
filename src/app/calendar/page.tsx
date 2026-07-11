@@ -236,12 +236,11 @@ export default function CalendarPage() {
   const [reviewView, setReviewView] = useState<"review" | "plan">("review");
   const [weeklyReview, setWeeklyReview] = useState("");
   const [reviewLoading, setReviewLoading] = useState(false);
-  const [ratings, setRatings] = useState<
-    Record<string, { rating: number; notes: string }>
-  >({});
+  const [ratings] = useState<Record<string, { rating: number; notes: string }>>(
+    {},
+  );
   const [nextWeekPlan, setNextWeekPlan] = useState<NextWeekPlan | null>(null);
   const [planLoading, setPlanLoading] = useState(false);
-  const [expandedPost, setExpandedPost] = useState<string | null>(null);
   const [expandedPlan, setExpandedPlan] = useState<number | null>(null);
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -252,7 +251,6 @@ export default function CalendarPage() {
   const thisWeekPosts = posts.filter(
     (p) => p.day >= weekStart && p.day <= weekEnd,
   );
-
   function prevMonth() {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -294,20 +292,6 @@ export default function CalendarPage() {
     ]);
     setNewPostTitle("");
     setShowModal(false);
-  }
-
-  function setRatingFn(title: string, rating: number) {
-    setRatings((prev) => ({
-      ...prev,
-      [title]: { ...prev[title], rating, notes: prev[title]?.notes || "" },
-    }));
-  }
-
-  function setNotesFn(title: string, notes: string) {
-    setRatings((prev) => ({
-      ...prev,
-      [title]: { ...prev[title], notes, rating: prev[title]?.rating || 0 },
-    }));
   }
 
   async function generateWeeklyReview() {
@@ -392,7 +376,6 @@ export default function CalendarPage() {
     setReviewOpen(false);
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const weeks = [0, 0, 0, 0];
     posts.forEach((p) => {
@@ -413,6 +396,7 @@ export default function CalendarPage() {
       return d >= 1 && d <= 4;
     }).length;
     const peakCoverage = Math.min(Math.round((peakDays / 4) * 10), 10);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setScores({
       consistency,
       platformBalance: balance,
@@ -437,7 +421,7 @@ export default function CalendarPage() {
         setRecommendation("Unable to generate recommendation.");
         setAnalyzing(false);
       });
-  }, [currentMonth, currentYear, posts.length]);
+  }, [currentMonth, currentYear, posts, posts.length]);
 
   if (reviewOpen) {
     return (

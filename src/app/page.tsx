@@ -74,7 +74,7 @@ export default function Dashboard() {
           </div>
           <h1 className="text-3xl font-bold text-white">Good morning 👋</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            Here's your content overview for{" "}
+            Here&apos;s your content overview for{" "}
             {today.toLocaleString("default", { month: "long" })} {currentYear}
           </p>
         </div>

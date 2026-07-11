@@ -1,5 +1,6 @@
 "use client";
-
+import { supabase } from "@/lib/supabase";
+import { useEffect } from "react";
 import { createContext, useContext, useState, ReactNode } from "react";
 
 // --- Types ---
@@ -49,6 +50,7 @@ interface AppContextType {
 
 // --- Create context ---
 const AppContext = createContext<AppContextType | null>(null);
+const [user, setUser] = useState<{ id: string; email: string } | null>(null);
 
 // --- Platform colors ---
 export const PLATFORM_COLORS: Record<string, string> = {
@@ -175,7 +177,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   function deleteSavedScript(id: string) {
     setSavedScripts((prev) => prev.filter((s) => s.id !== id));
   }
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email! });
+      }
+    });
 
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email! });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
   return (
     <AppContext.Provider
       value={{
