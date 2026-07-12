@@ -1,7 +1,13 @@
 "use client";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { supabase } from "@/lib/supabase";
-import { useEffect } from "react";
-import { createContext, useContext, useState, ReactNode } from "react";
 
 // --- Types ---
 export interface ScheduledPost {
@@ -30,29 +36,7 @@ export interface SavedScript {
   savedAt: string;
 }
 
-// --- Context shape ---
-interface AppContextType {
-  // Posts
-  posts: ScheduledPost[];
-  addPost: (post: Omit<ScheduledPost, "id">) => void;
-  deletePost: (id: string) => void;
-
-  // Saved ideas
-  savedIdeas: SavedIdea[];
-  saveIdea: (idea: Omit<SavedIdea, "id" | "savedAt">) => void;
-  deleteSavedIdea: (id: string) => void;
-
-  // Scripts
-  savedScripts: SavedScript[];
-  saveScript: (script: Omit<SavedScript, "id" | "savedAt">) => void;
-  deleteSavedScript: (id: string) => void;
-}
-
-// --- Create context ---
-const AppContext = createContext<AppContextType | null>(null);
-const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-
-// --- Platform colors ---
+// --- Platform helpers ---
 export const PLATFORM_COLORS: Record<string, string> = {
   Instagram: "bg-pink-500/20 text-pink-300 border-pink-500/30",
   YouTube: "bg-red-500/20 text-red-300 border-red-500/30",
@@ -74,9 +58,27 @@ export const PLATFORM_BADGE: Record<string, { bg: string; color: string }> = {
   Facebook: { bg: "rgba(24,119,242,0.15)", color: "#60a5fa" },
 };
 
-// --- Provider ---
+// --- Context shape ---
+interface AppContextType {
+  user: { id: string; email: string } | null;
+  signOut: () => Promise<void>;
+  posts: ScheduledPost[];
+  addPost: (post: Omit<ScheduledPost, "id">) => void;
+  deletePost: (id: string) => void;
+  savedIdeas: SavedIdea[];
+  saveIdea: (idea: Omit<SavedIdea, "id" | "savedAt">) => void;
+  deleteSavedIdea: (id: string) => void;
+  savedScripts: SavedScript[];
+  saveScript: (script: Omit<SavedScript, "id" | "savedAt">) => void;
+  deleteSavedScript: (id: string) => void;
+}
+
+const AppContext = createContext<AppContextType | null>(null);
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const today = new Date();
+
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
 
   const [posts, setPosts] = useState<ScheduledPost[]>([
     {
@@ -143,40 +145,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [savedScripts, setSavedScripts] = useState<SavedScript[]>([]);
 
-  function addPost(post: Omit<ScheduledPost, "id">) {
-    const id = Date.now().toString();
-    setPosts((prev) => [...prev, { ...post, id }]);
-  }
-
-  function deletePost(id: string) {
-    setPosts((prev) => prev.filter((p) => p.id !== id));
-  }
-
-  function saveIdea(idea: Omit<SavedIdea, "id" | "savedAt">) {
-    const id = Date.now().toString();
-    const savedAt = new Date().toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    setSavedIdeas((prev) => [...prev, { ...idea, id, savedAt }]);
-  }
-
-  function deleteSavedIdea(id: string) {
-    setSavedIdeas((prev) => prev.filter((i) => i.id !== id));
-  }
-
-  function saveScript(script: Omit<SavedScript, "id" | "savedAt">) {
-    const id = Date.now().toString();
-    const savedAt = new Date().toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    setSavedScripts((prev) => [...prev, { ...script, id, savedAt }]);
-  }
-
-  function deleteSavedScript(id: string) {
-    setSavedScripts((prev) => prev.filter((s) => s.id !== id));
-  }
+  // --- Auth ---
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -196,9 +165,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    setUser(null);
+  }
+
+  // --- Posts ---
+  function addPost(post: Omit<ScheduledPost, "id">) {
+    const id = Date.now().toString();
+    setPosts((prev) => [...prev, { ...post, id }]);
+  }
+
+  function deletePost(id: string) {
+    setPosts((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  // --- Ideas ---
+  function saveIdea(idea: Omit<SavedIdea, "id" | "savedAt">) {
+    const id = Date.now().toString();
+    const savedAt = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    setSavedIdeas((prev) => [...prev, { ...idea, id, savedAt }]);
+  }
+
+  function deleteSavedIdea(id: string) {
+    setSavedIdeas((prev) => prev.filter((i) => i.id !== id));
+  }
+
+  // --- Scripts ---
+  function saveScript(script: Omit<SavedScript, "id" | "savedAt">) {
+    const id = Date.now().toString();
+    const savedAt = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    setSavedScripts((prev) => [...prev, { ...script, id, savedAt }]);
+  }
+
+  function deleteSavedScript(id: string) {
+    setSavedScripts((prev) => prev.filter((s) => s.id !== id));
+  }
+
   return (
     <AppContext.Provider
       value={{
+        user,
+        signOut,
         posts,
         addPost,
         deletePost,
@@ -215,7 +230,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// --- Hook ---
 export function useApp() {
   const context = useContext(AppContext);
   if (!context) throw new Error("useApp must be used inside AppProvider");

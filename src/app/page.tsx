@@ -64,7 +64,7 @@ export default function Dashboard() {
   const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -82,7 +82,7 @@ export default function Dashboard() {
 
       {/* Stats row */}
       <div
-        className="grid gap-4"
+        className="grid gap-3"
         style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
       >
         {[
@@ -113,7 +113,7 @@ export default function Dashboard() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-gray-900/40 border border-gray-800 rounded-2xl p-5"
+            className="bg-gray-900/40 border border-gray-800 rounded-2xl p-6"
           >
             <p className="text-xs text-gray-600 uppercase tracking-widest mb-2">
               {stat.label}
@@ -128,8 +128,8 @@ export default function Dashboard() {
 
       {/* Middle row */}
       <div
-        className="grid gap-4"
-        style={{ gridTemplateColumns: "1.3fr 1fr 1fr" }}
+        className="grid gap-3"
+        style={{ gridTemplateColumns: "1.2fr 1fr 0.9fr" }}
       >
         {/* Quick actions */}
         <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-5">
