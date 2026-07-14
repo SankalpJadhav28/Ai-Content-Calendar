@@ -9,7 +9,6 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 
-// --- Types ---
 export interface ScheduledPost {
   id: string;
   day: number;
@@ -36,7 +35,6 @@ export interface SavedScript {
   savedAt: string;
 }
 
-// --- Platform helpers ---
 export const PLATFORM_COLORS: Record<string, string> = {
   Instagram: "bg-pink-500/20 text-pink-300 border-pink-500/30",
   YouTube: "bg-red-500/20 text-red-300 border-red-500/30",
@@ -58,99 +56,37 @@ export const PLATFORM_BADGE: Record<string, { bg: string; color: string }> = {
   Facebook: { bg: "rgba(24,119,242,0.15)", color: "#60a5fa" },
 };
 
-// --- Context shape ---
 interface AppContextType {
   user: { id: string; email: string } | null;
   signOut: () => Promise<void>;
   posts: ScheduledPost[];
-  addPost: (post: Omit<ScheduledPost, "id">) => void;
-  deletePost: (id: string) => void;
+  addPost: (post: Omit<ScheduledPost, "id">) => Promise<void>;
+  deletePost: (id: string) => Promise<void>;
   savedIdeas: SavedIdea[];
-  saveIdea: (idea: Omit<SavedIdea, "id" | "savedAt">) => void;
-  deleteSavedIdea: (id: string) => void;
+  saveIdea: (idea: Omit<SavedIdea, "id" | "savedAt">) => Promise<void>;
+  deleteSavedIdea: (id: string) => Promise<void>;
   savedScripts: SavedScript[];
-  saveScript: (script: Omit<SavedScript, "id" | "savedAt">) => void;
-  deleteSavedScript: (id: string) => void;
+  saveScript: (script: Omit<SavedScript, "id" | "savedAt">) => Promise<void>;
+  deleteSavedScript: (id: string) => Promise<void>;
+  loading: boolean;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const today = new Date();
-
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-
-  const [posts, setPosts] = useState<ScheduledPost[]>([
-    {
-      id: "1",
-      day: 5,
-      month: today.getMonth(),
-      year: today.getFullYear(),
-      title: "Morning routine reel",
-      platform: "Instagram",
-      color: PLATFORM_COLORS["Instagram"],
-    },
-    {
-      id: "2",
-      day: 12,
-      month: today.getMonth(),
-      year: today.getFullYear(),
-      title: "Study with me vlog",
-      platform: "YouTube",
-      color: PLATFORM_COLORS["YouTube"],
-    },
-    {
-      id: "3",
-      day: 18,
-      month: today.getMonth(),
-      year: today.getFullYear(),
-      title: "Career lessons thread",
-      platform: "LinkedIn",
-      color: PLATFORM_COLORS["LinkedIn"],
-    },
-    {
-      id: "4",
-      day: 24,
-      month: today.getMonth(),
-      year: today.getFullYear(),
-      title: "Outfit of the day",
-      platform: "Instagram",
-      color: PLATFORM_COLORS["Instagram"],
-    },
-  ]);
-
-  const [savedIdeas, setSavedIdeas] = useState<SavedIdea[]>([
-    {
-      id: "1",
-      title: "Morning routine reel — 5 habits before 8am",
-      description: "Hook with a bold claim, show each habit quickly.",
-      platform: "Instagram",
-      savedAt: "Jun 28",
-    },
-    {
-      id: "2",
-      title: "3 career lessons nobody told me in college",
-      description: "Personal story format — honest, relatable.",
-      platform: "LinkedIn",
-      savedAt: "Jul 2",
-    },
-    {
-      id: "3",
-      title: "How I built my productivity system",
-      description: "Step by step walkthrough of tools and habits.",
-      platform: "YouTube",
-      savedAt: "Jul 5",
-    },
-  ]);
-
+  const [posts, setPosts] = useState<ScheduledPost[]>([]);
+  const [savedIdeas, setSavedIdeas] = useState<SavedIdea[]>([]);
   const [savedScripts, setSavedScripts] = useState<SavedScript[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // --- Auth ---
+  // Auth listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser({ id: session.user.id, email: session.user.email! });
       }
+      setLoading(false);
     });
 
     const {
@@ -160,53 +96,191 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser({ id: session.user.id, email: session.user.email! });
       } else {
         setUser(null);
+        setPosts([]);
+        setSavedIdeas([]);
+        setSavedScripts([]);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    setUser(null);
+  // Load data when user logs in
+  async function loadAllData() {
+    setLoading(true);
+    // eslint-disable-next-line react-hooks/immutability
+    await Promise.all([loadPosts(), loadIdeas(), loadScripts()]);
+    setLoading(false);
   }
 
-  // --- Posts ---
-  function addPost(post: Omit<ScheduledPost, "id">) {
-    const id = Date.now().toString();
-    setPosts((prev) => [...prev, { ...post, id }]);
+  useEffect(() => {
+    if (!user) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  async function loadPosts() {
+    const { data } = await supabase
+      .from("scheduled_posts")
+      .select("*")
+      .order("day", { ascending: true });
+    if (data) {
+      setPosts(
+        data.map((p) => ({
+          id: p.id,
+          day: p.day,
+          month: p.month,
+          year: p.year,
+          title: p.title,
+          platform: p.platform,
+          color: p.color || PLATFORM_COLORS[p.platform] || "",
+        })),
+      );
+    }
   }
 
-  function deletePost(id: string) {
+  async function loadIdeas() {
+    const { data } = await supabase
+      .from("saved_ideas")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data) {
+      setSavedIdeas(
+        data.map((i) => ({
+          id: i.id,
+          title: i.title,
+          description: i.description || "",
+          platform: i.platform,
+          savedAt: new Date(i.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+        })),
+      );
+    }
+  }
+
+  async function loadScripts() {
+    const { data } = await supabase
+      .from("saved_scripts")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data) {
+      setSavedScripts(
+        data.map((s) => ({
+          id: s.id,
+          title: s.title,
+          platform: s.platform,
+          script: s.script,
+          savedAt: new Date(s.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+        })),
+      );
+    }
+  }
+
+  async function addPost(post: Omit<ScheduledPost, "id">) {
+    if (!user) {
+      console.log("No user found");
+      return;
+    }
+    console.log("Adding post:", post, "for user:", user.id);
+    const { data, error } = await supabase
+      .from("scheduled_posts")
+      .insert({ ...post, user_id: user.id })
+      .select()
+      .single();
+    console.log("Result:", data, "Error:", error);
+    if (data) {
+      setPosts((prev) => [
+        ...prev,
+        {
+          id: data.id,
+          day: data.day,
+          month: data.month,
+          year: data.year,
+          title: data.title,
+          platform: data.platform,
+          color: data.color || PLATFORM_COLORS[data.platform] || "",
+        },
+      ]);
+    }
+  }
+
+  async function deletePost(id: string) {
+    await supabase.from("scheduled_posts").delete().eq("id", id);
     setPosts((prev) => prev.filter((p) => p.id !== id));
   }
 
-  // --- Ideas ---
-  function saveIdea(idea: Omit<SavedIdea, "id" | "savedAt">) {
-    const id = Date.now().toString();
-    const savedAt = new Date().toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    setSavedIdeas((prev) => [...prev, { ...idea, id, savedAt }]);
+  async function saveIdea(idea: Omit<SavedIdea, "id" | "savedAt">) {
+    if (!user) {
+      console.log("No user found for saveIdea");
+      return;
+    }
+    console.log("Saving idea:", idea, "for user:", user.id);
+    const { data, error } = await supabase
+      .from("saved_ideas")
+      .insert({ ...idea, user_id: user.id })
+      .select()
+      .single();
+    console.log("Idea result:", data, "Error:", error);
+    if (data) {
+      setSavedIdeas((prev) => [
+        {
+          id: data.id,
+          title: data.title,
+          description: data.description || "",
+          platform: data.platform,
+          savedAt: new Date(data.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+        },
+        ...prev,
+      ]);
+    }
   }
 
-  function deleteSavedIdea(id: string) {
+  async function deleteSavedIdea(id: string) {
+    await supabase.from("saved_ideas").delete().eq("id", id);
     setSavedIdeas((prev) => prev.filter((i) => i.id !== id));
   }
 
-  // --- Scripts ---
-  function saveScript(script: Omit<SavedScript, "id" | "savedAt">) {
-    const id = Date.now().toString();
-    const savedAt = new Date().toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    setSavedScripts((prev) => [...prev, { ...script, id, savedAt }]);
+  async function saveScript(script: Omit<SavedScript, "id" | "savedAt">) {
+    if (!user) return;
+    const { data } = await supabase
+      .from("saved_scripts")
+      .insert({ ...script, user_id: user.id })
+      .select()
+      .single();
+    if (data) {
+      setSavedScripts((prev) => [
+        {
+          id: data.id,
+          title: data.title,
+          platform: data.platform,
+          script: data.script,
+          savedAt: new Date(data.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+        },
+        ...prev,
+      ]);
+    }
   }
 
-  function deleteSavedScript(id: string) {
+  async function deleteSavedScript(id: string) {
+    await supabase.from("saved_scripts").delete().eq("id", id);
     setSavedScripts((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    setUser(null);
   }
 
   return (
@@ -223,6 +297,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         savedScripts,
         saveScript,
         deleteSavedScript,
+        loading,
       }}
     >
       {children}

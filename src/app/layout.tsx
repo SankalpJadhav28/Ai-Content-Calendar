@@ -21,34 +21,77 @@ function Navbar() {
 
   return (
     <nav
-      className="flex-shrink-0 px-8 flex items-center justify-between"
       style={{
-        height: "56px",
-        background: "#0f0f13",
-        borderBottom: "0.5px solid #1f1f27",
+        height: "52px",
+        background: "rgba(10,10,15,0.95)",
+        borderBottom: "0.5px solid rgba(255,255,255,0.06)",
+        backdropFilter: "blur(12px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 40px",
+        flexShrink: 0,
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
       }}
     >
-      <Link href="/" className="flex items-center gap-2">
+      {/* Logo */}
+      <Link
+        href="/"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          textDecoration: "none",
+        }}
+      >
         <div
-          className="w-6 h-6 rounded-lg flex items-center justify-center text-xs"
-          style={{ background: "rgba(124,58,237,0.2)" }}
+          style={{
+            width: "24px",
+            height: "24px",
+            borderRadius: "8px",
+            background: "rgba(124,58,237,0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "12px",
+          }}
         >
           ✦
         </div>
-        <span className="text-sm font-semibold text-white">AI Calendar</span>
+        <span style={{ fontSize: "14px", fontWeight: 600, color: "#ffffff" }}>
+          AI Calendar
+        </span>
       </Link>
 
-      <div className="flex items-center gap-1">
+      {/* Nav links */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "2px",
+          background: "rgba(255,255,255,0.04)",
+          border: "0.5px solid rgba(255,255,255,0.06)",
+          borderRadius: "12px",
+          padding: "4px",
+        }}
+      >
         {links.map((link) => {
           const isActive = pathname === link.href;
           return (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm px-3 py-1.5 rounded-lg transition-all"
               style={{
-                background: isActive ? "rgba(124,58,237,0.1)" : "transparent",
-                color: isActive ? "#a78bfa" : "#6b7280",
+                fontSize: "13px",
+                padding: "5px 14px",
+                borderRadius: "8px",
+                textDecoration: "none",
+                background: isActive ? "rgba(124,58,237,0.2)" : "transparent",
+                color: isActive ? "#c4b5fd" : "#6b7280",
+                transition: "all 0.15s",
+                fontWeight: isActive ? 500 : 400,
               }}
             >
               {link.label}
@@ -57,19 +100,42 @@ function Navbar() {
         })}
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Right side */}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         {user ? (
           <>
-            <span className="text-xs text-gray-600">{user.email}</span>
+            <span style={{ fontSize: "12px", color: "#4b5563" }}>
+              {user.email}
+            </span>
             <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium"
-              style={{ background: "rgba(124,58,237,0.2)", color: "#a78bfa" }}
+              style={{
+                width: "28px",
+                height: "28px",
+                borderRadius: "50%",
+                background: "rgba(124,58,237,0.2)",
+                border: "0.5px solid rgba(124,58,237,0.3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px",
+                fontWeight: 500,
+                color: "#a78bfa",
+              }}
             >
               {user.email[0].toUpperCase()}
             </div>
             <button
               onClick={signOut}
-              className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+              style={{
+                fontSize: "12px",
+                color: "#4b5563",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#9ca3af")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#4b5563")}
             >
               Sign out
             </button>
@@ -77,11 +143,14 @@ function Navbar() {
         ) : (
           <Link
             href="/login"
-            className="text-xs px-3 py-1.5 rounded-lg transition-all"
             style={{
+              fontSize: "12px",
+              padding: "6px 14px",
+              borderRadius: "8px",
               background: "rgba(124,58,237,0.15)",
-              color: "#a78bfa",
               border: "0.5px solid rgba(124,58,237,0.3)",
+              color: "#a78bfa",
+              textDecoration: "none",
             }}
           >
             Sign in →
@@ -103,8 +172,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: isAuthPage ? "0" : "2.5rem 3rem",
-          scrollbarWidth: "none",
+          padding: isAuthPage ? "0" : "32px 40px",
+          scrollbarWidth: "none" as const,
         }}
       >
         {children}
@@ -121,8 +190,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className="bg-gray-950 text-white"
-        style={{ margin: 0, padding: 0 }}
+        style={{
+          margin: 0,
+          padding: 0,
+          background: "#0a0a0f",
+          color: "#ffffff",
+          fontFamily: "var(--font-sans)",
+        }}
       >
         <AppProvider>
           <AppShell>{children}</AppShell>
