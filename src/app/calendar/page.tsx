@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import {
+  useApp,
+  PLATFORM_COLORS,
+  PLATFORM_DOT,
+  PLATFORM_BADGE,
+} from "@/context/AppContext";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -18,13 +24,6 @@ const MONTHS = [
   "December",
 ];
 
-interface ScheduledPost {
-  day: number;
-  title: string;
-  platform: string;
-  color: string;
-}
-
 interface PlanItem {
   day: string;
   platform: string;
@@ -37,27 +36,6 @@ interface NextWeekPlan {
   schedule: PlanItem[];
   focus: string;
 }
-
-const PLATFORM_COLORS: Record<string, string> = {
-  Instagram: "bg-pink-500/20 text-pink-300 border-pink-500/30",
-  YouTube: "bg-red-500/20 text-red-300 border-red-500/30",
-  LinkedIn: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  Facebook: "bg-blue-600/20 text-blue-300 border-blue-600/30",
-};
-
-const PLATFORM_DOT: Record<string, string> = {
-  Instagram: "#ec4899",
-  YouTube: "#ef4444",
-  LinkedIn: "#3b82f6",
-  Facebook: "#1877f2",
-};
-
-const PLATFORM_BADGE: Record<string, { bg: string; color: string }> = {
-  Instagram: { bg: "rgba(236,72,153,0.15)", color: "#f472b6" },
-  YouTube: { bg: "rgba(239,68,68,0.15)", color: "#f87171" },
-  LinkedIn: { bg: "rgba(59,130,246,0.15)", color: "#60a5fa" },
-  Facebook: { bg: "rgba(24,119,242,0.15)", color: "#60a5fa" },
-};
 
 function ScheduleForm({
   item,
@@ -73,30 +51,26 @@ function ScheduleForm({
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [platform, setPlatform] = useState(item.platform);
 
-  const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  const DAYS_SHORT = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const today = new Date();
 
   return (
     <div className="flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
-      {/* Mini calendar */}
       <div>
         <p className="text-xs text-gray-600 mb-2">Pick a date</p>
         <div
           className="rounded-xl border border-gray-800 p-3"
           style={{ background: "#0f0f13" }}
         >
-          {/* Day headers */}
           <div className="grid grid-cols-7 mb-1">
-            {DAYS.map((d) => (
+            {DAYS_SHORT.map((d) => (
               <div key={d} className="text-center text-xs text-gray-600 py-1">
                 {d}
               </div>
             ))}
           </div>
-
-          {/* Date grid */}
           <div className="grid grid-cols-7 gap-0.5">
             {Array.from({ length: firstDay }).map((_, i) => (
               <div key={`e-${i}`} />
@@ -143,7 +117,6 @@ function ScheduleForm({
         )}
       </div>
 
-      {/* Platform selector */}
       <div>
         <p className="text-xs text-gray-600 mb-1.5">Platform</p>
         <div className="grid grid-cols-2 gap-1.5">
@@ -168,7 +141,6 @@ function ScheduleForm({
         </div>
       </div>
 
-      {/* Confirm */}
       <button
         onClick={() => {
           if (selectedDay) onSchedule(selectedDay, platform);
@@ -191,6 +163,8 @@ function ScheduleForm({
 }
 
 export default function CalendarPage() {
+  const { posts, addPost, deletePost } = useApp();
+
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -203,32 +177,6 @@ export default function CalendarPage() {
     platformBalance: 0,
     peakDayCoverage: 0,
   });
-  const [posts, setPosts] = useState<ScheduledPost[]>([
-    {
-      day: 5,
-      title: "Morning routine reel",
-      platform: "Instagram",
-      color: PLATFORM_COLORS["Instagram"],
-    },
-    {
-      day: 12,
-      title: "Study with me vlog",
-      platform: "YouTube",
-      color: PLATFORM_COLORS["YouTube"],
-    },
-    {
-      day: 18,
-      title: "Career lessons thread",
-      platform: "LinkedIn",
-      color: PLATFORM_COLORS["LinkedIn"],
-    },
-    {
-      day: 24,
-      title: "Outfit of the day",
-      platform: "Instagram",
-      color: PLATFORM_COLORS["Instagram"],
-    },
-  ]);
   const [showModal, setShowModal] = useState(false);
   const [newPostTitle, setNewPostTitle] = useState("");
   const [newPostPlatform, setNewPostPlatform] = useState("Instagram");
@@ -251,6 +199,7 @@ export default function CalendarPage() {
   const thisWeekPosts = posts.filter(
     (p) => p.day >= weekStart && p.day <= weekEnd,
   );
+
   function prevMonth() {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -270,7 +219,11 @@ export default function CalendarPage() {
     currentMonth === today.getMonth() &&
     currentYear === today.getFullYear();
 
-  const getPostsForDay = (day: number) => posts.filter((p) => p.day === day);
+  const getPostsForDay = (day: number) =>
+    posts.filter(
+      (p) =>
+        p.day === day && p.month === currentMonth && p.year === currentYear,
+    );
 
   function handleDayClick(day: number) {
     setSelectedDay(day);
@@ -279,17 +232,16 @@ export default function CalendarPage() {
     else setShowModal(true);
   }
 
-  function addPost() {
+  async function addPostToCalendar() {
     if (!newPostTitle.trim() || !selectedDay) return;
-    setPosts((prev) => [
-      ...prev,
-      {
-        day: selectedDay,
-        title: newPostTitle,
-        platform: newPostPlatform,
-        color: PLATFORM_COLORS[newPostPlatform],
-      },
-    ]);
+    await addPost({
+      day: selectedDay,
+      month: currentMonth,
+      year: currentYear,
+      title: newPostTitle,
+      platform: newPostPlatform,
+      color: PLATFORM_COLORS[newPostPlatform],
+    });
     setNewPostTitle("");
     setShowModal(false);
   }
@@ -348,7 +300,7 @@ export default function CalendarPage() {
     setPlanLoading(false);
   }
 
-  function schedulePost(item: PlanItem) {
+  async function schedulePost(item: PlanItem) {
     const dayMap: Record<string, number> = {
       Monday: 1,
       Tuesday: 2,
@@ -360,19 +312,21 @@ export default function CalendarPage() {
     };
     const targetDay = dayMap[item.day];
     const nextWeekDay = weekEnd + 1 + targetDay;
-    setPosts((prev) => [
-      ...prev,
-      {
-        day: nextWeekDay,
-        title: item.idea,
-        platform: item.platform,
-        color: PLATFORM_COLORS[item.platform] || PLATFORM_COLORS["Instagram"],
-      },
-    ]);
+    await addPost({
+      day: nextWeekDay,
+      month: currentMonth,
+      year: currentYear,
+      title: item.idea,
+      platform: item.platform,
+      color: PLATFORM_COLORS[item.platform] || PLATFORM_COLORS["Instagram"],
+    });
   }
 
-  function scheduleAll() {
-    nextWeekPlan?.schedule.forEach((item) => schedulePost(item));
+  async function scheduleAll() {
+    if (!nextWeekPlan) return;
+    for (const item of nextWeekPlan.schedule) {
+      await schedulePost(item);
+    }
     setReviewOpen(false);
   }
 
@@ -425,11 +379,7 @@ export default function CalendarPage() {
 
   if (reviewOpen) {
     return (
-      <div
-        className="flex flex-col h-full"
-        style={{ height: "calc(100vh - 0px)" }}
-      >
-        {/* Top bar */}
+      <div className="flex flex-col" style={{ height: "calc(100vh - 52px)" }}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 flex-shrink-0">
           <div className="flex items-center gap-3">
             {reviewView === "plan" && (
@@ -465,17 +415,14 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Two column body */}
         <div
           className="flex-1 grid overflow-hidden"
           style={{ gridTemplateColumns: "1fr 1fr" }}
         >
-          {/* LEFT — review */}
           <div
             className="border-r border-gray-800 p-6 overflow-y-auto flex flex-col gap-5"
             style={{ scrollbarWidth: "none" }}
           >
-            {/* Week strip */}
             <div>
               <p className="text-xs text-gray-600 uppercase tracking-widest mb-3">
                 This week
@@ -525,13 +472,10 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* Streak tracker */}
             <div>
               <p className="text-xs text-gray-600 uppercase tracking-widest mb-3">
                 4-week streak
               </p>
-
-              {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p
@@ -555,15 +499,11 @@ export default function CalendarPage() {
                   <span className="text-xs" style={{ color: "#fbbf24" }}>
                     {(() => {
                       let streak = 0;
-                      const weeksToCheck = [0, 1, 2, 3];
-                      for (const w of weeksToCheck) {
-                        const weekStartDay =
-                          today.getDate() - dayOfWeek - w * 7;
-                        const weekEndDay = weekStartDay + 6;
-                        const hasPost = posts.some(
-                          (p) => p.day >= weekStartDay && p.day <= weekEndDay,
-                        );
-                        if (hasPost) streak++;
+                      for (const w of [0, 1, 2, 3]) {
+                        const ws = today.getDate() - dayOfWeek - w * 7;
+                        const we = ws + 6;
+                        if (posts.some((p) => p.day >= ws && p.day <= we))
+                          streak++;
                         else break;
                       }
                       return `${streak} week streak`;
@@ -572,12 +512,10 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              {/* Week grid */}
               <div
                 className="rounded-xl border border-gray-800 p-3 mb-3"
                 style={{ background: "#0f0f13" }}
               >
-                {/* Day headers */}
                 <div className="flex items-center gap-1.5 mb-2">
                   <div style={{ width: "44px" }} />
                   {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
@@ -590,13 +528,10 @@ export default function CalendarPage() {
                     </div>
                   ))}
                 </div>
-
-                {/* 4 weeks */}
                 {[3, 2, 1, 0].map((weeksAgo) => {
                   const wStart = today.getDate() - dayOfWeek - weeksAgo * 7;
                   const wDate = new Date(currentYear, currentMonth, wStart);
                   const label = `${wDate.toLocaleString("default", { month: "short" })} ${wStart > 0 ? wStart : ""}`;
-
                   return (
                     <div
                       key={weeksAgo}
@@ -620,24 +555,20 @@ export default function CalendarPage() {
                         const isCurrentDay =
                           dayNum === today.getDate() &&
                           currentMonth === today.getMonth();
-
                         const platformColor: Record<string, string> = {
                           Instagram: "rgba(236,72,153,0.3)",
                           YouTube: "rgba(239,68,68,0.3)",
                           LinkedIn: "rgba(59,130,246,0.3)",
                           Facebook: "rgba(24,119,242,0.3)",
                         };
-
                         const platformBorder: Record<string, string> = {
                           Instagram: "rgba(236,72,153,0.5)",
                           YouTube: "rgba(239,68,68,0.5)",
                           LinkedIn: "rgba(59,130,246,0.5)",
                           Facebook: "rgba(24,119,242,0.5)",
                         };
-
                         let bg = "#16161e";
                         let border = "#1f1f27";
-
                         if (postsOnDay.length === 1) {
                           bg =
                             platformColor[postsOnDay[0].platform] ||
@@ -652,7 +583,6 @@ export default function CalendarPage() {
                         } else if (isCurrentDay) {
                           border = "rgba(124,58,237,0.5)";
                         }
-
                         return (
                           <div
                             key={d}
@@ -676,7 +606,6 @@ export default function CalendarPage() {
                 })}
               </div>
 
-              {/* Legend */}
               <div className="flex flex-wrap gap-3 mb-4">
                 {[
                   {
@@ -717,7 +646,6 @@ export default function CalendarPage() {
                 ))}
               </div>
 
-              {/* Stats row */}
               <div
                 className="grid gap-2 mb-4"
                 style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
@@ -770,7 +698,6 @@ export default function CalendarPage() {
                 ))}
               </div>
 
-              {/* Platform breakdown */}
               <div className="flex flex-col gap-2">
                 {[
                   { name: "Instagram", color: "#ec4899" },
@@ -834,7 +761,6 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* AI Review */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-gray-600 uppercase tracking-widest">
@@ -867,14 +793,13 @@ export default function CalendarPage() {
                   </p>
                 ) : (
                   <p className="text-xs text-gray-600">
-                    Rate your posts above then click regenerate.
+                    Click regenerate to get your AI weekly review.
                   </p>
                 )}
               </div>
             </div>
           </div>
 
-          {/* RIGHT — plan */}
           <div
             className="p-6 overflow-y-auto flex flex-col gap-5"
             style={{ scrollbarWidth: "none" }}
@@ -897,8 +822,8 @@ export default function CalendarPage() {
                     </p>
                     <p className="text-xs text-gray-500 leading-relaxed">
                       {weeklyReview
-                        ? "Your review is ready. Generate a personalised 7-day content schedule based on your performance."
-                        : "Complete your weekly review first, then generate a personalised next week plan."}
+                        ? "Your review is ready. Generate a personalised 7-day content schedule."
+                        : "Complete your weekly review first, then generate a plan."}
                     </p>
                   </div>
                   <button
@@ -935,8 +860,6 @@ export default function CalendarPage() {
                 <p className="text-xs text-gray-600 uppercase tracking-widest">
                   Next week plan
                 </p>
-
-                {/* Focus */}
                 <div
                   className="rounded-xl p-4"
                   style={{
@@ -951,8 +874,6 @@ export default function CalendarPage() {
                     {nextWeekPlan.focus}
                   </p>
                 </div>
-
-                {/* Plan cards */}
                 <div className="flex flex-col gap-2">
                   {nextWeekPlan.schedule.map((item, idx) => (
                     <div
@@ -1009,7 +930,6 @@ export default function CalendarPage() {
                           </span>
                         </div>
                       </div>
-
                       {expandedPlan === idx && (
                         <div className="px-3 pb-3 border-t border-gray-800">
                           <p className="text-xs text-gray-500 leading-relaxed mt-3 mb-3">
@@ -1020,18 +940,17 @@ export default function CalendarPage() {
                               item={item}
                               currentMonth={currentMonth}
                               currentYear={currentYear}
-                              onSchedule={(day, platform) => {
-                                setPosts((prev) => [
-                                  ...prev,
-                                  {
-                                    day,
-                                    title: item.idea,
-                                    platform,
-                                    color:
-                                      PLATFORM_COLORS[platform] ||
-                                      PLATFORM_COLORS["Instagram"],
-                                  },
-                                ]);
+                              onSchedule={async (day, platform) => {
+                                await addPost({
+                                  day,
+                                  month: currentMonth,
+                                  year: currentYear,
+                                  title: item.idea,
+                                  platform,
+                                  color:
+                                    PLATFORM_COLORS[platform] ||
+                                    PLATFORM_COLORS["Instagram"],
+                                });
                                 setExpandedPlan(null);
                               }}
                             />
@@ -1052,7 +971,6 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div className="flex items-center justify-between px-6 py-3 border-t border-gray-800 flex-shrink-0">
           <button
             onClick={generateWeeklyReview}
@@ -1080,7 +998,6 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Calendar</h1>
@@ -1120,7 +1037,6 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Calendar card */}
       <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-6">
           <button
@@ -1195,7 +1111,6 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Add post modal */}
       {showModal && selectedDay && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-sm mx-4 flex flex-col gap-4">
@@ -1216,7 +1131,7 @@ export default function CalendarPage() {
                 type="text"
                 value={newPostTitle}
                 onChange={(e) => setNewPostTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addPost()}
+                onKeyDown={(e) => e.key === "Enter" && addPostToCalendar()}
                 placeholder="e.g. Morning routine reel..."
                 className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-gray-600 text-sm"
                 autoFocus
@@ -1237,7 +1152,7 @@ export default function CalendarPage() {
               </div>
             </div>
             <button
-              onClick={addPost}
+              onClick={addPostToCalendar}
               disabled={!newPostTitle.trim()}
               className="bg-violet-600 hover:bg-violet-500 disabled:bg-gray-800 disabled:text-gray-600 text-white font-medium py-2.5 rounded-xl transition-all text-sm"
             >
@@ -1247,7 +1162,6 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* View posts modal */}
       {viewingDay && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-sm mx-4 flex flex-col gap-4">
@@ -1274,12 +1188,7 @@ export default function CalendarPage() {
                   </div>
                   <button
                     onClick={() => {
-                      setPosts((prev) =>
-                        prev.filter(
-                          (p) =>
-                            !(p.day === viewingDay && p.title === post.title),
-                        ),
-                      );
+                      deletePost(post.id);
                       if (getPostsForDay(viewingDay).length === 1)
                         setViewingDay(null);
                     }}
@@ -1304,7 +1213,6 @@ export default function CalendarPage() {
         </div>
       )}
 
-      {/* AI Analytics */}
       <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-6 flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <div>

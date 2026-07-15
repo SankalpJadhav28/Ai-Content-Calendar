@@ -216,17 +216,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   async function saveIdea(idea: Omit<SavedIdea, "id" | "savedAt">) {
+    console.log("saveIdea called", idea);
+    console.log("current user", user);
+
     if (!user) {
-      console.log("No user found for saveIdea");
+      console.log("NO USER — aborting");
       return;
     }
-    console.log("Saving idea:", idea, "for user:", user.id);
+
     const { data, error } = await supabase
       .from("saved_ideas")
       .insert({ ...idea, user_id: user.id })
       .select()
       .single();
-    console.log("Idea result:", data, "Error:", error);
+
+    console.log("insert data:", data);
+    console.log("insert error:", error);
+
     if (data) {
       setSavedIdeas((prev) => [
         {

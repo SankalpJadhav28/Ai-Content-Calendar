@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useApp } from "@/context/AppContext";
 
 interface Idea {
   title: string;
@@ -111,6 +112,7 @@ const trendingTopics: Record<string, string[]> = {
   ],
 };
 export default function GeneratePage() {
+  const { saveIdea } = useApp();
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState("Instagram");
   const [tone, setTone] = useState("Casual");
@@ -154,10 +156,22 @@ export default function GeneratePage() {
   }
 
   function toggleSave(index: number) {
+    console.log("toggleSave called", index);
     setIdeas((prev) =>
-      prev.map((idea, i) =>
-        i === index ? { ...idea, saved: !idea.saved } : idea,
-      ),
+      prev.map((idea, i) => {
+        if (i === index) {
+          console.log("saving idea:", idea.title);
+          if (!idea.saved) {
+            saveIdea({
+              title: idea.title,
+              description: idea.description,
+              platform: platform,
+            });
+          }
+          return { ...idea, saved: !idea.saved };
+        }
+        return idea;
+      }),
     );
   }
 

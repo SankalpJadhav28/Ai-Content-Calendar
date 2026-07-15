@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll() {
@@ -30,14 +30,10 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname === "/signup";
 
-  const isPublicPage = request.nextUrl.pathname === "/";
-
-  // Not logged in and trying to access protected page
-  if (!user && !isAuthPage && !isPublicPage) {
+  if (!user && !isAuthPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Logged in and trying to access login/signup
   if (user && isAuthPage) {
     return NextResponse.redirect(new URL("/", request.url));
   }
