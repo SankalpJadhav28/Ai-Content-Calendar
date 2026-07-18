@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🤖 AI Content Calendar
 
-## Getting Started
+> 🚧 **Project Status: In Active Development**
 
-First, run the development server:
+An AI-powered content planning workspace designed to help creators, freelancers, and businesses generate ideas, write platform-specific content, organize their work, and plan their content calendar from one place.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+🌐 **Live Demo:** https://ai-content-calendar-seven.vercel.app/
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> The application is actively being developed. Some features may be incomplete or change as development continues.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📌 About the Project
 
-## Learn More
+Creating content consistently involves more than just coming up with ideas.
 
-To learn more about Next.js, take a look at the following resources:
+Creators often have to:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Find new content ideas
+- Write hooks, captions, and scripts
+- Adapt content for different platforms
+- Keep track of unfinished ideas
+- Plan when and where to publish
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**AI Content Calendar** brings these workflows together into a single application.
 
-## Deploy on Vercel
+Instead of using separate tools for brainstorming, writing, saving ideas, and planning content, the goal is to create one AI-assisted workspace for the entire content creation process.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ✨ Current Features
+
+### 💡 AI Content Generation
+
+Generate content ideas based on a topic and target platform.
+
+The AI helps turn broad topics into usable content concepts and hooks, reducing the time spent brainstorming from scratch.
+
+### ✍️ AI Script & Content Writer
+
+Expand ideas into longer-form content such as:
+
+- Social media captions
+- Video scripts
+- Hooks
+- Platform-specific content
+
+The generated output can be adapted depending on the selected platform and content requirements.
+
+### 📅 Content Calendar
+
+Plan and organize upcoming content through a visual calendar interface.
+
+The calendar is designed to help users see what content they have planned and maintain a more consistent publishing schedule.
+
+### 🔖 Saved Content
+
+Save generated ideas and content so they can be accessed and reused later instead of being lost after generation.
+
+### 📊 Dashboard
+
+A central overview of the user's content planning activity, providing quick access to important parts of the application.
+
+### 👤 Multi-User Authentication
+
+Authentication and user accounts are integrated using Supabase.
+
+Each user has their own account and application data, allowing the platform to work as a multi-user application rather than a single static workspace.
+
+### 🌐 Landing Page
+
+A dedicated public landing page introduces the product and its core functionality before users enter the application.
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| **Next.js** | Full-stack React framework |
+| **TypeScript** | Type-safe application development |
+| **Tailwind CSS** | UI styling and responsive design |
+| **Supabase** | Database and authentication |
+| **AI / LLM API** | AI-powered idea and content generation |
+| **Vercel** | Deployment and hosting |
+| **Git & GitHub** | Version control and source management |
+
+---
+
+## 🧠 How the AI Workflow Works
+
+At a high level:
+
+```text
+User Input
+    ↓
+Topic + Platform + Content Requirements
+    ↓
+Application AI Layer
+    ↓
+LLM Processing
+    ↓
+Generated Ideas / Scripts / Content
+    ↓
+Save and Organize
+    ↓
+Content Calendar
