@@ -1,22 +1,39 @@
 "use client";
 
-import { useApp } from "@/context/AppContext";
-import { PLATFORM_DOT, PLATFORM_BADGE } from "@/context/AppContext";
+import { useApp, PLATFORM_DOT, PLATFORM_BADGE } from "@/context/AppContext";
 import Link from "next/link";
+import LandingPage from "./landing/page";
 
-export default function Dashboard() {
-  const { posts, savedIdeas, savedScripts } = useApp();
+export default function Home() {
+  const { user, posts, savedIdeas, savedScripts } = useApp();
 
+  // Not logged in — show landing page
+  if (!user) return <LandingPage />;
+
+  // Logged in — show dashboard
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
-  // Posts this month
+  const MONTHS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
   const thisMonthPosts = posts.filter(
     (p) => p.month === currentMonth && p.year === currentYear,
   );
-
-  // Upcoming posts — from today onwards
   const upcomingPosts = posts
     .filter(
       (p) =>
@@ -25,9 +42,8 @@ export default function Dashboard() {
         p.year === currentYear,
     )
     .sort((a, b) => a.day - b.day)
-    .slice(0, 4);
+    .slice(0, 3);
 
-  // Platform split
   const platforms = ["Instagram", "YouTube", "LinkedIn", "Facebook"];
   const platformCounts = platforms.map((pl) => ({
     name: pl,
@@ -36,20 +52,18 @@ export default function Dashboard() {
   }));
   const maxCount = Math.max(...platformCounts.map((p) => p.count), 1);
 
-  // Streak — weeks with at least one post
   const dayOfWeek = today.getDay();
   let streak = 0;
   for (let w = 0; w < 4; w++) {
     const ws = today.getDate() - dayOfWeek - w * 7;
     const we = ws + 6;
-    const hasPost = posts.some(
-      (p) => p.day >= ws && p.day <= we && p.month === currentMonth,
-    );
-    if (hasPost) streak++;
+    if (
+      posts.some((p) => p.day >= ws && p.day <= we && p.month === currentMonth)
+    )
+      streak++;
     else break;
   }
 
-  // Mini streak grid — last 4 weeks
   const streakGrid = [3, 2, 1, 0].map((weeksAgo) => {
     const ws = today.getDate() - dayOfWeek - weeksAgo * 7;
     return [0, 1, 2, 3, 4, 5, 6].map((d) => {
@@ -61,29 +75,57 @@ export default function Dashboard() {
     });
   });
 
-  const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const hour = today.getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 py-1 mb-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-            <span className="text-xs text-violet-400">AI powered</span>
-          </div>
-          <h1 className="text-3xl font-bold text-white">Good morning 👋</h1>
-          <p className="text-gray-500 mt-1 text-sm">
-            Here&apos;s your content overview for{" "}
-            {today.toLocaleString("default", { month: "long" })} {currentYear}
-          </p>
+    <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+      <div style={{ marginBottom: "28px" }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "rgba(124,58,237,0.1)",
+            border: "0.5px solid rgba(124,58,237,0.25)",
+            borderRadius: "20px",
+            padding: "3px 12px",
+            marginBottom: "10px",
+          }}
+        >
+          <div
+            style={{
+              width: "5px",
+              height: "5px",
+              borderRadius: "50%",
+              background: "#a78bfa",
+            }}
+          />
+          <span style={{ fontSize: "11px", color: "#a78bfa" }}>AI powered</span>
         </div>
+        <h1
+          style={{
+            fontSize: "30px",
+            fontWeight: 600,
+            color: "#ffffff",
+            marginBottom: "4px",
+          }}
+        >
+          {greeting} 👋
+        </h1>
+        <p style={{ fontSize: "13px", color: "#4b5563" }}>
+          {MONTHS[currentMonth]} {currentYear} — content overview
+        </p>
       </div>
 
-      {/* Stats row */}
       <div
-        className="grid gap-3"
-        style={{ gridTemplateColumns: "repeat(4, 1fr)" }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4,1fr)",
+          gap: "10px",
+          marginBottom: "16px",
+        }}
       >
         {[
           {
@@ -113,130 +155,285 @@ export default function Dashboard() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-gray-900/40 border border-gray-800 rounded-2xl p-6"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "0.5px solid rgba(255,255,255,0.07)",
+              borderRadius: "14px",
+              padding: "18px 20px",
+            }}
           >
-            <p className="text-xs text-gray-600 uppercase tracking-widest mb-2">
+            <p
+              style={{
+                fontSize: "10px",
+                color: "#4b5563",
+                textTransform: "uppercase" as const,
+                letterSpacing: "0.06em",
+                marginBottom: "8px",
+              }}
+            >
               {stat.label}
             </p>
-            <p className="text-3xl font-semibold" style={{ color: stat.color }}>
+            <p
+              style={{
+                fontSize: "28px",
+                fontWeight: 600,
+                color: stat.color,
+                lineHeight: 1,
+              }}
+            >
               {stat.value}
             </p>
-            <p className="text-xs text-gray-600 mt-2">{stat.sub}</p>
+            <p style={{ fontSize: "11px", color: "#4b5563", marginTop: "6px" }}>
+              {stat.sub}
+            </p>
           </div>
         ))}
       </div>
 
-      {/* Middle row */}
       <div
-        className="grid gap-3"
-        style={{ gridTemplateColumns: "1.2fr 1fr 0.9fr" }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: "10px",
+          marginBottom: "12px",
+        }}
       >
-        {/* Quick actions */}
-        <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-5">
-          <p className="text-sm font-medium text-white mb-4">Quick actions</p>
-          <div className="flex flex-col gap-2">
+        <div
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "0.5px solid rgba(255,255,255,0.07)",
+            borderRadius: "14px",
+            padding: "18px 20px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: 500,
+              color: "#e5e7eb",
+              marginBottom: "12px",
+            }}
+          >
+            Quick actions
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             {[
               {
                 icon: "💡",
                 label: "Generate ideas",
-                sub: "Get AI content ideas for any platform",
+                sub: "AI ideas for any platform",
                 href: "/generate",
-                color: "rgba(124,58,237,0.15)",
+                bg: "rgba(124,58,237,0.1)",
               },
               {
                 icon: "✍️",
                 label: "Write a script",
-                sub: "Turn an idea into a full script",
+                sub: "Turn an idea into a script",
                 href: "/script",
-                color: "rgba(236,72,153,0.15)",
+                bg: "rgba(236,72,153,0.1)",
               },
               {
                 icon: "📅",
                 label: "Open calendar",
-                sub: "Schedule and plan your content",
+                sub: "Schedule your content",
                 href: "/calendar",
-                color: "rgba(16,185,129,0.15)",
+                bg: "rgba(16,185,129,0.1)",
               },
               {
                 icon: "🔖",
                 label: "Saved content",
-                sub: "View all your saved ideas",
+                sub: "View all saved ideas",
                 href: "/saved",
-                color: "rgba(245,158,11,0.15)",
+                bg: "rgba(245,158,11,0.1)",
               },
             ].map((action) => (
               <Link
                 key={action.label}
                 href={action.href}
-                className="flex items-center gap-3 p-3 rounded-xl border transition-all hover:border-gray-700"
                 style={{
-                  borderColor: "rgba(255,255,255,0.06)",
-                  background: "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "9px 10px",
+                  borderRadius: "10px",
+                  border: "0.5px solid rgba(255,255,255,0.05)",
+                  textDecoration: "none",
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)")
+                }
               >
                 <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0"
-                  style={{ background: action.color }}
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "9px",
+                    background: action.bg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "15px",
+                    flexShrink: 0,
+                  }}
                 >
                   {action.icon}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 500,
+                      color: "#e5e7eb",
+                    }}
+                  >
                     {action.label}
                   </p>
-                  <p className="text-xs text-gray-600 mt-0.5">{action.sub}</p>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "#4b5563",
+                      marginTop: "1px",
+                    }}
+                  >
+                    {action.sub}
+                  </p>
                 </div>
               </Link>
             ))}
           </div>
         </div>
 
-        {/* Upcoming posts */}
-        <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-medium text-white">Upcoming posts</p>
+        <div
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "0.5px solid rgba(255,255,255,0.07)",
+            borderRadius: "14px",
+            padding: "18px 20px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "14px",
+            }}
+          >
+            <p style={{ fontSize: "13px", fontWeight: 500, color: "#e5e7eb" }}>
+              Upcoming posts
+            </p>
             <Link
               href="/calendar"
-              className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+              style={{
+                fontSize: "11px",
+                color: "#4b5563",
+                textDecoration: "none",
+              }}
             >
               View all →
             </Link>
           </div>
           {upcomingPosts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-32 gap-2">
-              <p className="text-xs text-gray-600">No upcoming posts</p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "140px",
+                gap: "6px",
+              }}
+            >
+              <p style={{ fontSize: "12px", color: "#4b5563" }}>
+                No upcoming posts
+              </p>
               <Link
                 href="/calendar"
-                className="text-xs text-violet-400 hover:text-violet-300"
+                style={{
+                  fontSize: "11px",
+                  color: "#a78bfa",
+                  textDecoration: "none",
+                }}
               >
                 Schedule one →
               </Link>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+            >
               {upcomingPosts.map((post) => {
                 const date = new Date(post.year, post.month, post.day);
                 const dayName = DAYS_OF_WEEK[date.getDay()];
+                const badge = PLATFORM_BADGE[post.platform];
                 return (
-                  <div key={post.id} className="flex items-center gap-3">
+                  <div
+                    key={post.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
+                  >
                     <div
-                      className="w-10 h-10 rounded-xl border border-gray-800 flex flex-col items-center justify-center flex-shrink-0"
-                      style={{ background: "#0f0f13" }}
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "10px",
+                        border: "0.5px solid rgba(255,255,255,0.07)",
+                        background: "#0f0f13",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
                     >
-                      <p className="text-sm font-semibold text-white leading-none">
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: "#e5e7eb",
+                          lineHeight: 1,
+                        }}
+                      >
                         {post.day}
                       </p>
-                      <p className="text-xs text-gray-600 mt-0.5">{dayName}</p>
+                      <p
+                        style={{
+                          fontSize: "9px",
+                          color: "#4b5563",
+                          marginTop: "1px",
+                        }}
+                      >
+                        {dayName}
+                      </p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-white truncate">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          color: "#e5e7eb",
+                          whiteSpace: "nowrap" as const,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {post.title}
                       </p>
                       <span
-                        className="text-xs px-2 py-0.5 rounded-full mt-1 inline-block"
                         style={{
-                          background: PLATFORM_BADGE[post.platform]?.bg,
-                          color: PLATFORM_BADGE[post.platform]?.color,
+                          fontSize: "10px",
+                          padding: "1px 7px",
+                          borderRadius: "20px",
+                          background: badge?.bg,
+                          color: badge?.color,
+                          marginTop: "3px",
+                          display: "inline-block",
                         }}
                       >
                         {post.platform}
@@ -249,54 +446,110 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Platform split + mini streak */}
-        <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+        <div
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "0.5px solid rgba(255,255,255,0.07)",
+            borderRadius: "14px",
+            padding: "18px 20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+          }}
+        >
           <div>
-            <p className="text-sm font-medium text-white mb-3">
+            <p
+              style={{
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "#e5e7eb",
+                marginBottom: "12px",
+              }}
+            >
               Platform split
             </p>
-            <div className="flex flex-col gap-2">
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
               {platformCounts.map((pl) => (
-                <div key={pl.name} className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 w-20">{pl.name}</span>
+                <div
+                  key={pl.name}
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      color: "#6b7280",
+                      width: "65px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {pl.name}
+                  </span>
                   <div
-                    className="flex-1 rounded-full"
-                    style={{ height: "5px", background: "#1f2937" }}
+                    style={{
+                      flex: 1,
+                      height: "4px",
+                      background: "rgba(255,255,255,0.06)",
+                      borderRadius: "9999px",
+                      overflow: "hidden",
+                    }}
                   >
                     <div
                       style={{
                         width: `${(pl.count / maxCount) * 100}%`,
-                        height: "5px",
+                        height: "4px",
                         borderRadius: "9999px",
                         background: pl.color,
                         transition: "width 0.5s",
                       }}
                     />
                   </div>
-                  <span className="text-xs text-gray-600 w-4 text-right">
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      color: "#4b5563",
+                      width: "12px",
+                      textAlign: "right" as const,
+                    }}
+                  >
                     {pl.count}
                   </span>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="border-t border-gray-800 pt-4">
-            <p className="text-xs text-gray-600 mb-2">Last 4 weeks</p>
-            <div className="flex flex-col gap-1">
+          <div
+            style={{
+              borderTop: "0.5px solid rgba(255,255,255,0.05)",
+              paddingTop: "14px",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "11px",
+                color: "#4b5563",
+                marginBottom: "8px",
+              }}
+            >
+              Last 4 weeks
+            </p>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "3px" }}
+            >
               {streakGrid.map((week, wi) => (
-                <div key={wi} className="flex gap-1">
-                  {week.map(({ dayNum, post }, di) => (
+                <div key={wi} style={{ display: "flex", gap: "3px" }}>
+                  {week.map(({ post }, di) => (
                     <div
                       key={di}
-                      className="flex-1 rounded"
                       style={{
-                        height: "14px",
+                        flex: 1,
+                        height: "12px",
+                        borderRadius: "3px",
                         background: post
-                          ? PLATFORM_DOT[post.platform] + "50"
-                          : "#1f2937",
+                          ? PLATFORM_DOT[post.platform] + "55"
+                          : "rgba(255,255,255,0.04)",
                         border: `0.5px solid ${post ? PLATFORM_DOT[post.platform] + "80" : "transparent"}`,
-                        opacity: dayNum === today.getDate() ? 1 : 0.8,
                       }}
                       title={post ? post.title : ""}
                     />
@@ -308,25 +561,35 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* AI insight */}
       <div
-        className="rounded-2xl p-4 flex items-start gap-3"
         style={{
           background: "rgba(124,58,237,0.05)",
-          border: "0.5px solid rgba(124,58,237,0.2)",
+          border: "0.5px solid rgba(124,58,237,0.15)",
+          borderRadius: "14px",
+          padding: "14px 18px",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "10px",
         }}
       >
-        <span className="text-lg flex-shrink-0">💡</span>
+        <span style={{ fontSize: "16px", flexShrink: 0 }}>💡</span>
         <div>
-          <p className="text-xs font-medium mb-1" style={{ color: "#a78bfa" }}>
+          <p
+            style={{
+              fontSize: "11px",
+              fontWeight: 500,
+              color: "#a78bfa",
+              marginBottom: "3px",
+            }}
+          >
             AI insight
           </p>
-          <p className="text-xs leading-relaxed" style={{ color: "#9ca3af" }}>
+          <p style={{ fontSize: "12px", color: "#6b7280", lineHeight: 1.6 }}>
             {savedIdeas.length > 0
               ? `You have ${savedIdeas.length} saved idea${savedIdeas.length > 1 ? "s" : ""} that ${savedIdeas.length > 1 ? "haven't" : "hasn't"} been scripted yet. `
               : ""}
             {thisMonthPosts.length === 0
-              ? "No posts scheduled this month yet — head to the calendar to start planning."
+              ? "No posts scheduled this month — head to the calendar to start planning."
               : `You've scheduled ${thisMonthPosts.length} post${thisMonthPosts.length > 1 ? "s" : ""} this month. `}
             {streak > 0
               ? `Keep it up — you're on a ${streak} week streak! 🔥`
