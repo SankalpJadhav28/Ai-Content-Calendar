@@ -18,7 +18,11 @@ function Navbar() {
     { href: "/script", label: "Script" },
   ];
 
-  if (pathname === "/" || pathname === "/login" || pathname === "/signup") {
+  if (pathname === "/login" || pathname === "/signup") {
+    return null;
+  }
+
+  if (pathname === "/" && !user) {
     return null;
   }
 
