@@ -262,38 +262,35 @@ function SignupBanner() {
 }
 
 function AppShell({ children }: { children: ReactNode }) {
+  const { user, loading } = useApp();
   const pathname = usePathname();
 
   const isAuthPage = pathname === "/login" || pathname === "/signup";
 
-  const isLandingPage = pathname === "/";
+  if (loading && !isAuthPage) {
+    return null;
+  }
 
   if (isAuthPage) {
     return <>{children}</>;
   }
 
+  const isLandingPage = pathname === "/" && !user;
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-      }}
-    >
+    <>
       <Navbar />
       <SignupBanner />
-
       <main
         style={{
           flex: 1,
           overflowY: "auto",
           padding: isLandingPage ? "0" : "32px 40px",
-          scrollbarWidth: "none",
         }}
       >
         {children}
       </main>
-    </div>
+    </>
   );
 }
 
