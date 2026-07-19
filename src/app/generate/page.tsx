@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useApp } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
 
 interface Idea {
   title: string;
@@ -112,7 +113,7 @@ const trendingTopics: Record<string, string[]> = {
   ],
 };
 export default function GeneratePage() {
-  const { saveIdea } = useApp();
+  const router = useRouter();
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState("Instagram");
   const [tone, setTone] = useState("Casual");
@@ -155,12 +156,16 @@ export default function GeneratePage() {
     setLoading(false);
   }
 
+  const { saveIdea, user } = useApp();
+
   function toggleSave(index: number) {
-    console.log("toggleSave called", index);
+    if (!user) {
+      router.push("/signup");
+      return;
+    }
     setIdeas((prev) =>
       prev.map((idea, i) => {
         if (i === index) {
-          console.log("saving idea:", idea.title);
           if (!idea.saved) {
             saveIdea({
               title: idea.title,

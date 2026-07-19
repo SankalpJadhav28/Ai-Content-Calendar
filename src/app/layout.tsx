@@ -18,6 +18,7 @@ function Navbar() {
   ];
 
   if (pathname === "/login" || pathname === "/signup") return null;
+  if (pathname === "/") return null;
 
   return (
     <nav
@@ -36,7 +37,6 @@ function Navbar() {
         zIndex: 50,
       }}
     >
-      {/* Logo */}
       <Link
         href="/"
         style={{
@@ -65,7 +65,6 @@ function Navbar() {
         </span>
       </Link>
 
-      {/* Nav links */}
       <div
         style={{
           display: "flex",
@@ -90,7 +89,6 @@ function Navbar() {
                 textDecoration: "none",
                 background: isActive ? "rgba(124,58,237,0.2)" : "transparent",
                 color: isActive ? "#c4b5fd" : "#6b7280",
-                transition: "all 0.15s",
                 fontWeight: isActive ? 500 : 400,
               }}
             >
@@ -100,7 +98,6 @@ function Navbar() {
         })}
       </div>
 
-      {/* Right side */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         {user ? (
           <>
@@ -141,38 +138,107 @@ function Navbar() {
             </button>
           </>
         ) : (
-          <Link
-            href="/login"
-            style={{
-              fontSize: "12px",
-              padding: "6px 14px",
-              borderRadius: "8px",
-              background: "rgba(124,58,237,0.15)",
-              border: "0.5px solid rgba(124,58,237,0.3)",
-              color: "#a78bfa",
-              textDecoration: "none",
-            }}
-          >
-            Sign in →
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Link
+              href="/login"
+              style={{
+                fontSize: "12px",
+                color: "#6b7280",
+                textDecoration: "none",
+              }}
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              style={{
+                fontSize: "12px",
+                padding: "6px 14px",
+                borderRadius: "8px",
+                background: "rgba(124,58,237,0.15)",
+                border: "0.5px solid rgba(124,58,237,0.3)",
+                color: "#a78bfa",
+                textDecoration: "none",
+              }}
+            >
+              Get started free →
+            </Link>
+          </div>
         )}
       </div>
     </nav>
   );
 }
 
+function SignupBanner() {
+  const { user } = useApp();
+  const pathname = usePathname();
+
+  const showBanner =
+    !user &&
+    (pathname === "/generate" ||
+      pathname === "/calendar" ||
+      pathname === "/script");
+
+  if (!showBanner) return null;
+
+  return (
+    <div
+      style={{
+        background: "rgba(124,58,237,0.06)",
+        borderBottom: "0.5px solid rgba(124,58,237,0.2)",
+        padding: "8px 40px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
+    >
+      <p style={{ fontSize: "12px", color: "#a78bfa" }}>
+        ✦ You&apos;re in preview mode — sign up free to save ideas, scripts and
+        posts
+      </p>
+      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <Link
+          href="/login"
+          style={{ fontSize: "12px", color: "#6b7280", textDecoration: "none" }}
+        >
+          Sign in
+        </Link>
+        <Link
+          href="/signup"
+          style={{
+            fontSize: "12px",
+            color: "#a78bfa",
+            textDecoration: "none",
+            fontWeight: 500,
+            background: "rgba(124,58,237,0.15)",
+            border: "0.5px solid rgba(124,58,237,0.3)",
+            padding: "4px 12px",
+            borderRadius: "6px",
+          }}
+        >
+          Sign up free →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function AppShell({ children }: { children: React.ReactNode }) {
+  const { user } = useApp();
   const pathname = usePathname();
   const isAuthPage = pathname === "/login" || pathname === "/signup";
+  const isLandingPage = pathname === "/" && !user;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <Navbar />
+      <SignupBanner />
       <main
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: isAuthPage ? "0" : "32px 40px",
+          padding: isAuthPage || isLandingPage ? "0" : "32px 40px",
           scrollbarWidth: "none" as const,
         }}
       >
@@ -195,7 +261,6 @@ export default function RootLayout({
           padding: 0,
           background: "#0a0a0f",
           color: "#ffffff",
-          fontFamily: "var(--font-sans)",
         }}
       >
         <AppProvider>

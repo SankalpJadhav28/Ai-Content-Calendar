@@ -7,6 +7,7 @@ import {
   PLATFORM_DOT,
   PLATFORM_BADGE,
 } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -163,8 +164,10 @@ function ScheduleForm({
 }
 
 export default function CalendarPage() {
-  const { posts, addPost, deletePost } = useApp();
+  const { posts, addPost, deletePost, user } = useApp();
 
+  // inside component:
+  const router = useRouter();
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -226,6 +229,10 @@ export default function CalendarPage() {
     );
 
   function handleDayClick(day: number) {
+    if (!user) {
+      router.push("/signup");
+      return;
+    }
     setSelectedDay(day);
     const dayPosts = getPostsForDay(day);
     if (dayPosts.length > 0) setViewingDay(day);

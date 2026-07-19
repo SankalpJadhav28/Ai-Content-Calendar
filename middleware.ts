@@ -28,7 +28,11 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAuthPage = pathname === "/login" || pathname === "/signup";
-  const isPublicPage = pathname === "/";
+  const isPublicPage =
+    pathname === "/" ||
+    pathname === "/generate" ||
+    pathname === "/script" ||
+    pathname === "/calendar";
 
   // Not logged in trying to access protected pages
   if (!user && !isAuthPage && !isPublicPage) {
