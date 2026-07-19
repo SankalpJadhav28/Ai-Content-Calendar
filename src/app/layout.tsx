@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./globals.css";
@@ -17,8 +18,9 @@ function Navbar() {
     { href: "/script", label: "Script" },
   ];
 
-  if (pathname === "/login" || pathname === "/signup") return null;
-  if (pathname === "/") return null;
+  if (pathname === "/" || pathname === "/login" || pathname === "/signup") {
+    return null;
+  }
 
   return (
     <nav
@@ -31,7 +33,6 @@ function Navbar() {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 40px",
-        flexShrink: 0,
         position: "sticky",
         top: 0,
         zIndex: 50,
@@ -60,7 +61,14 @@ function Navbar() {
         >
           ✦
         </div>
-        <span style={{ fontSize: "14px", fontWeight: 600, color: "#ffffff" }}>
+
+        <span
+          style={{
+            fontSize: "14px",
+            fontWeight: 600,
+            color: "#fff",
+          }}
+        >
           AI Calendar
         </span>
       </Link>
@@ -78,6 +86,7 @@ function Navbar() {
       >
         {links.map((link) => {
           const isActive = pathname === link.href;
+
           return (
             <Link
               key={link.href}
@@ -98,12 +107,24 @@ function Navbar() {
         })}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+        }}
+      >
         {user ? (
           <>
-            <span style={{ fontSize: "12px", color: "#4b5563" }}>
+            <span
+              style={{
+                fontSize: "12px",
+                color: "#4b5563",
+              }}
+            >
               {user.email}
             </span>
+
             <div
               style={{
                 width: "28px",
@@ -114,56 +135,55 @@ function Navbar() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "12px",
-                fontWeight: 500,
                 color: "#a78bfa",
+                fontSize: "12px",
+                fontWeight: 600,
               }}
             >
               {user.email[0].toUpperCase()}
             </div>
+
             <button
               onClick={signOut}
               style={{
-                fontSize: "12px",
-                color: "#4b5563",
                 background: "none",
                 border: "none",
+                color: "#6b7280",
                 cursor: "pointer",
-                padding: 0,
+                fontSize: "12px",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#9ca3af")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#4b5563")}
             >
               Sign out
             </button>
           </>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <>
             <Link
               href="/login"
               style={{
-                fontSize: "12px",
-                color: "#6b7280",
                 textDecoration: "none",
+                color: "#6b7280",
+                fontSize: "12px",
               }}
             >
               Sign in
             </Link>
+
             <Link
               href="/signup"
               style={{
+                textDecoration: "none",
                 fontSize: "12px",
                 padding: "6px 14px",
                 borderRadius: "8px",
                 background: "rgba(124,58,237,0.15)",
                 border: "0.5px solid rgba(124,58,237,0.3)",
                 color: "#a78bfa",
-                textDecoration: "none",
               }}
             >
               Get started free →
             </Link>
-          </div>
+          </>
         )}
       </div>
     </nav>
@@ -175,10 +195,7 @@ function SignupBanner() {
   const pathname = usePathname();
 
   const showBanner =
-    !user &&
-    (pathname === "/generate" ||
-      pathname === "/calendar" ||
-      pathname === "/script");
+    !user && ["/generate", "/calendar", "/script"].includes(pathname);
 
   if (!showBanner) return null;
 
@@ -189,32 +206,48 @@ function SignupBanner() {
         borderBottom: "0.5px solid rgba(124,58,237,0.2)",
         padding: "8px 40px",
         display: "flex",
-        alignItems: "center",
         justifyContent: "space-between",
+        alignItems: "center",
       }}
     >
-      <p style={{ fontSize: "12px", color: "#a78bfa" }}>
-        ✦ You&apos;re in preview mode — sign up free to save ideas, scripts and
-        posts
+      <p
+        style={{
+          margin: 0,
+          fontSize: "12px",
+          color: "#a78bfa",
+        }}
+      >
+        ✦ You&apos;re in preview mode — Sign up free to save ideas, scripts and
+        posts.
       </p>
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+        }}
+      >
         <Link
           href="/login"
-          style={{ fontSize: "12px", color: "#6b7280", textDecoration: "none" }}
+          style={{
+            textDecoration: "none",
+            color: "#6b7280",
+            fontSize: "12px",
+          }}
         >
           Sign in
         </Link>
+
         <Link
           href="/signup"
           style={{
-            fontSize: "12px",
-            color: "#a78bfa",
             textDecoration: "none",
-            fontWeight: 500,
-            background: "rgba(124,58,237,0.15)",
-            border: "0.5px solid rgba(124,58,237,0.3)",
+            fontSize: "12px",
             padding: "4px 12px",
             borderRadius: "6px",
+            background: "rgba(124,58,237,0.15)",
+            border: "0.5px solid rgba(124,58,237,0.3)",
+            color: "#a78bfa",
           }}
         >
           Sign up free →
@@ -224,26 +257,34 @@ function SignupBanner() {
   );
 }
 
-function AppShell({ children }: { children: React.ReactNode }) {
-  const { user } = useApp();
-
+function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const isAuthPage = pathname === "/login" || pathname === "/signup";
+
   const isLandingPage = pathname === "/";
 
-  if (isAuthPage) return null;
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+      }}
+    >
       <Navbar />
       <SignupBanner />
+
       <main
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: isAuthPage || isLandingPage ? "0" : "32px 40px",
-          scrollbarWidth: "none" as const,
+          padding: isLandingPage ? "0" : "32px 40px",
+          scrollbarWidth: "none",
         }}
       >
         {children}
@@ -252,11 +293,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body
