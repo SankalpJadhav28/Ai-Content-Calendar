@@ -227,9 +227,7 @@ function SignupBanner() {
 function AppShell({ children }: { children: React.ReactNode }) {
   const { user } = useApp();
   const pathname = usePathname();
-  const isAuthPage = pathname === "/login" || pathname === "/signup";
-  const isLandingPage = pathname === "/" && !user;
-
+  if (pathname === "/login" || pathname === "/signup") return null;
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <Navbar />
