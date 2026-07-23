@@ -174,12 +174,20 @@ export default function LandingPage() {
         .land-section-head em { font-style: italic; font-weight: 300; color: #4b5563; }
 
         /* Pain grid */
-        .land-pain-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
-          background: rgba(255,255,255,0.05);
-          border: 0.5px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden;
-        }
-        .land-pain-cell { padding: 32px; background: #05050a; transition: background 0.2s; }
+        /* Pain grid — stack to 1 column with card feel */
+.land-pain-grid {
+  grid-template-columns: 1fr;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  gap: 10px;
+}
+.land-pain-cell {
+  padding: 24px 20px;
+  border-radius: 14px !important;
+  border: 0.5px solid rgba(255,255,255,0.07) !important;
+  background: rgba(255,255,255,0.02) !important;
+}
         .land-pain-cell:hover { background: #0a0a12; }
         .land-pain-emoji { font-size: 24px; margin-bottom: 12px; }
         .land-pain-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.3px; }
@@ -187,12 +195,20 @@ export default function LandingPage() {
         .land-pain-after { font-size: 12px; color: #a78bfa; }
 
         /* Features grid */
-        .land-feat-grid {
-          display: grid; grid-template-columns: repeat(3,1fr); gap: 1px;
-          background: rgba(255,255,255,0.05);
-          border: 0.5px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden;
-        }
-        .land-feat-cell { padding: 28px; background: #05050a; transition: background 0.2s; cursor: default; }
+        /* Features — stack to 1 column with card feel */
+.land-feat-grid {
+  grid-template-columns: 1fr;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  gap: 10px;
+}
+.land-feat-cell {
+  padding: 24px 20px;
+  border-radius: 14px !important;
+  border: 0.5px solid rgba(255,255,255,0.07) !important;
+  background: rgba(255,255,255,0.02) !important;
+}
         .land-feat-cell:hover { background: #0a0a12; }
         .land-feat-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 14px; }
         .land-feat-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.3px; }
@@ -209,13 +225,22 @@ export default function LandingPage() {
         .land-step-desc { font-size: 12px; color: #525252; line-height: 1.7; }
 
         /* Pricing */
-        .land-pricing-grid {
-          display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
-          background: rgba(255,255,255,0.05);
-          border: 0.5px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden;
-        }
-        .land-pricing-cell { padding: 32px; background: #05050a; position: relative; }
-        .land-pricing-cell.highlight { background: rgba(124,58,237,0.06); }
+        /* Pricing — stack to 1 column with card feel */
+.land-pricing-grid {
+  grid-template-columns: 1fr;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  gap: 10px;
+}
+.land-pricing-cell {
+  padding: 28px 20px;
+  border-radius: 14px !important;
+  border: 0.5px solid rgba(255,255,255,0.07) !important;
+}
+.land-pricing-cell.highlight {
+  border-color: rgba(124,58,237,0.3) !important;
+}
         .land-popular-badge { position: absolute; top: 16px; right: 16px; font-size: 9px; color: #a78bfa; background: rgba(124,58,237,0.15); border: 0.5px solid rgba(124,58,237,0.3); border-radius: 4px; padding: 2px 7px; }
         .land-plan-name { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
         .land-plan-price { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 2px; }
